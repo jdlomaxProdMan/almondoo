@@ -112,7 +112,7 @@ footer span{flex:1}
 footer button{background:none;border:0;color:var(--muted);font-size:12.5px;padding:4px 0 4px 8px}
 
 /* Sheets */
-.scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--text) 35%,transparent);display:flex;align-items:flex-end;justify-content:center;z-index:10;animation:fade .12s}
+.scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--text) 35%,transparent);display:flex;align-items:flex-end;justify-content:center;z-index:25;animation:fade .12s}
 .sheet{background:var(--surface);width:100%;max-width:560px;max-height:calc(100% - 24px - var(--sat));overflow-y:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(18px + var(--sab));box-shadow:0 -8px 30px rgba(0,0,0,.15);animation:up .18s ease-out}
 @keyframes fade{from{opacity:0}}
 @keyframes up{from{transform:translateY(24px);opacity:.6}}
@@ -395,6 +395,7 @@ function needAuth(){
   const busyUser = !!sheetEl || $('#addInput').value.trim() || listening;
   if(navigator.onLine && store.get('signedIn',false) && !recent && !busyUser){ signIn(true); return; }
   setFileChip('warn'); setSave(dirty?'Not saved yet':'');
+  if(!$('#welcome').classList.contains('hide')){ showWelcome('signin','Please sign in with Google again.'); return; }
   setBanner('Google sign-in expired.','Sign in',()=>signIn(false));
 }
 async function g(url,opts={}){
