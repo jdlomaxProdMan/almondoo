@@ -41,6 +41,10 @@ header{display:flex;align-items:center;gap:4px;padding:calc(8px + var(--sat)) 10
 .row{display:flex;gap:8px;align-items:center}
 .search{flex:1;min-width:0;height:40px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 12px;outline:none}
 .search:focus,.field:focus{border-color:var(--accent)}
+.quick{display:flex;gap:8px;padding:0 14px 8px}
+.quick button{flex:1;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:10px;font-size:14.5px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:7px}
+.quick button .n{font-size:12.5px;font-weight:500;opacity:.75}
+.quick button.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--text)}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 14px 8px}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;height:34px;padding:0 12px 0 10px;font-size:14px;display:flex;align-items:center;gap:6px;color:var(--muted)}
@@ -200,6 +204,7 @@ input[type=color]::-webkit-color-swatch{border:1px solid var(--line);border-radi
     <button class="iconbtn" id="sortDir" title="Sort direction" style="width:36px;height:36px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5v11M2.5 11 5 13.5 7.5 11"/><path d="M11 13.5v-11M8.5 5 11 2.5 13.5 5" opacity=".35"/></svg></button>
   </div>
 </div>
+<div class="quick" id="quickSeg"><button data-q="open">Open <span class="n" id="qOpen"></span></button><button data-q="done">Done <span class="n" id="qDone"></span></button></div>
 <div class="chips" id="chips"></div>
 
 <form class="add" id="addForm" autocomplete="off">
@@ -619,6 +624,9 @@ function render(){
   }
   const open=items.filter(t=>t.status!=='Done').length, over=items.filter(t=>t.status!=='Done'&&t.due&&t.due<today()).length;
   $('#count').textContent=`${open} open · ${items.length-open} done${over?` · ${over} overdue`:''}`;
+  const hasOpen=OPEN.some(x=>view.statuses.includes(x)), hasDone=view.statuses.includes('Done');
+  $('[data-q=open]').classList.toggle('on',hasOpen); $('[data-q=done]').classList.toggle('on',hasDone);
+  $('#qOpen').textContent=open; $('#qDone').textContent=items.length-open;
   $('#statusSeg').innerHTML=STATUSES.map(s=>`<button class="${view.statuses.includes(s)?'on':''}" data-st="${s}">${s}</button>`).join('');
   if(document.activeElement!==$('#q')) $('#q').value=view.q;
   $('#groupBy').value=view.group; $('#sortBy').value=view.sort;
@@ -634,6 +642,14 @@ $('#chips').onclick=e=>{ const b=e.target.closest('.chip'); if(!b) return; const
   if(!c) view.cats=[]; else view.cats = (view.cats.length===1&&view.cats[0]===c)?[]:[c];
   render(); };
 $('#q').oninput=e=>{ view.q=e.target.value; render(); };
+// Open / Done buttons: Open = To do + In progress + Waiting, Done = Done. At least one stays on.
+const OPEN=['To do','In progress','Waiting'];
+$('#quickSeg').onclick=e=>{ const b=e.target.closest('[data-q]'); if(!b) return;
+  const group = b.dataset.q==='open' ? OPEN : ['Done'];
+  const on = group.some(x=>view.statuses.includes(x));
+  const next = on ? view.statuses.filter(x=>!group.includes(x)) : [...new Set([...view.statuses,...group])];
+  if(!next.length) return;
+  view.statuses=STATUSES.filter(x=>next.includes(x)); render(); };
 $('#statusSeg').onclick=e=>{ const b=e.target.closest('[data-st]'); if(!b) return; const st=b.dataset.st;
   view.statuses = view.statuses.includes(st) ? view.statuses.filter(x=>x!==st) : [...view.statuses,st];
   if(!view.statuses.length) view.statuses=[...STATUSES];
