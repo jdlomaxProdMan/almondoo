@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6EFE4">
+<title>AlmonDOO</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#F6EFE4; --surface:#FFFBF5; --text:#2E241B; --muted:#8A7765;
+  --accent:#B9824B; --on-accent:#FFFFFF; --line:#E6D9C6; --danger:#C0492F;
+  --radius:12px; --font: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.38 var(--font);display:flex;flex-direction:column;overflow:hidden;overscroll-behavior:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.hide{display:none!important}
+
+/* Header */
+header{display:flex;align-items:center;gap:4px;padding:calc(8px + var(--sat)) 10px 6px 14px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;letter-spacing:-.2px;flex:1;min-width:0}
+.logo svg{flex:none}
+.logo b{color:var(--accent)}
+.filechip{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);max-width:42%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;background:none;border:0;padding:6px 6px;border-radius:8px}
+.filechip span{overflow:hidden;text-overflow:ellipsis}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.ok{background:#4E9A5B}.dot.warn{background:#D49A2A}.dot.err{background:var(--danger)}
+.iconbtn{width:40px;height:40px;display:grid;place-items:center;border:0;background:none;border-radius:10px;color:var(--muted);flex:none}
+.iconbtn:active{background:var(--line);color:var(--text)}
+.iconbtn.on{color:var(--accent)}
+.iconbtn svg{width:20px;height:20px}
+
+/* Toolbar */
+.toolbar{padding:0 14px 8px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:8px;align-items:center}
+.search{flex:1;min-width:0;height:40px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 12px;outline:none}
+.search:focus,.field:focus{border-color:var(--accent)}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 14px 8px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;height:34px;padding:0 12px 0 10px;font-size:14px;display:flex;align-items:center;gap:6px;color:var(--muted)}
+.chip .sw{width:9px;height:9px;border-radius:50%}
+.chip.on{border-color:var(--c,var(--accent));color:var(--text);background:color-mix(in srgb,var(--c,var(--accent)) 16%,var(--surface))}
+.chip .n{font-size:12px;opacity:.7}
+.mini{height:36px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:0 6px;font-size:14px;color:var(--text);outline:none;min-width:0;flex:1}
+.lbl{font-size:12px;color:var(--muted)}
+.seg{display:flex;flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;min-width:0;border:0;border-left:1px solid var(--line);background:none;height:36px;padding:0 3px;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button:first-child{border-left:0}
+.seg button.on{background:color-mix(in srgb,var(--accent) 16%,var(--surface));color:var(--text);font-weight:600}
+
+/* Quick add */
+.add{margin:0 14px 10px;display:flex;gap:8px}
+.add input{flex:1;min-width:0;height:44px;border:1px dashed color-mix(in srgb,var(--accent) 55%,var(--line));background:var(--surface);border-radius:11px;padding:0 12px;outline:none}
+.add input:focus{border-style:solid;border-color:var(--accent)}
+.btn{height:44px;border:0;border-radius:11px;padding:0 16px;background:var(--accent);color:var(--on-accent);font-weight:600}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 40%,var(--line))}
+.btn:disabled{opacity:.5;cursor:default}
+.mic{width:44px;height:44px;flex:none;border-radius:50%;border:0;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;position:relative}
+.mic svg{width:21px;height:21px}
+.mic.live{background:var(--danger)}
+.mic.live::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:2px solid var(--danger);animation:pulse 1.1s ease-out infinite}
+@keyframes pulse{from{transform:scale(.85);opacity:1}to{transform:scale(1.25);opacity:0}}
+.add.live input{border-style:solid;border-color:var(--danger)}
+
+/* List */
+main{flex:1;overflow-y:auto;padding:0 14px 16px;overscroll-behavior:contain}
+.group{margin-top:6px}
+.gh{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:9px 2px 7px;z-index:1;cursor:pointer;user-select:none}
+.gh .sw{width:9px;height:9px;border-radius:50%}
+.gh .cnt{font-weight:500;opacity:.8}
+.gh .car{margin-left:auto;transition:transform .15s}
+.group.collapsed .car{transform:rotate(-90deg)}
+.group.collapsed .items{display:none}
+.item{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:var(--radius);padding:11px 11px;margin-bottom:7px;cursor:pointer}
+.item:active{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));border-left-color:var(--c,var(--line))}
+.check{flex:none;width:26px;height:26px;margin:-2px 0 0 -2px;border-radius:50%;border:2px solid var(--muted);background:none;display:grid;place-items:center;padding:0;position:relative}
+.check::before{content:"";position:absolute;inset:-9px}
+.check svg{width:14px;height:14px;opacity:0}
+.item.done .check{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.item.done .check svg{opacity:1}
+.body{flex:1;min-width:0}
+.name{font-weight:600;overflow-wrap:anywhere}
+.item.done .name{text-decoration:line-through;color:var(--muted);font-weight:500}
+.desc{color:var(--muted);font-size:13.5px;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{display:flex;flex-wrap:wrap;gap:5px 9px;margin-top:5px;font-size:12.5px;color:var(--muted);align-items:center}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:999px;background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--text)}
+.pill i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.lnk{color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:2px;padding:2px 4px;margin:-2px -4px}
+.st{padding:1px 7px;border-radius:6px;border:1px solid var(--line)}
+.st.prog{border-color:color-mix(in srgb,var(--accent) 60%,var(--line));color:var(--accent)}
+.st.wait{border-style:dashed}
+.due{flex:none;min-width:62px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.due b{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap}
+.due small{font-size:12px;color:var(--muted);white-space:nowrap}
+.due.none b{font-weight:400;color:var(--muted);opacity:.55}
+.due.over b,.due.over small{color:var(--danger)}
+.due.today b,.due.today small{color:var(--accent)}
+.item.done .due b{color:var(--muted);font-weight:500}
+.empty{text-align:center;color:var(--muted);padding:44px 12px}
+.empty b{display:block;color:var(--text);font-size:16px;margin-bottom:4px}
+
+/* Footer */
+footer{display:flex;align-items:center;gap:8px;padding:8px 14px calc(8px + var(--sab));font-size:12.5px;color:var(--muted);border-top:1px solid var(--line)}
+footer span{flex:1}
+footer button{background:none;border:0;color:var(--muted);font-size:12.5px;padding:4px 0 4px 8px}
+
+/* Sheets */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--text) 35%,transparent);display:flex;align-items:flex-end;justify-content:center;z-index:10;animation:fade .12s}
+.sheet{background:var(--surface);width:100%;max-width:560px;max-height:calc(100% - 24px - var(--sat));overflow-y:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(18px + var(--sab));box-shadow:0 -8px 30px rgba(0,0,0,.15);animation:up .18s ease-out}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(24px);opacity:.6}}
+.sheet h2{margin:0 0 12px;font-size:18px;display:flex;align-items:center;gap:8px}
+.sheet h2 span{flex:1}
+.sheet h3{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:18px 0 9px}
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:11px;min-width:0}
+.f label{font-size:12px;color:var(--muted);font-weight:600}
+.field{width:100%;height:44px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:0 11px;outline:none;min-width:0}
+textarea.field{height:76px;padding:9px 11px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.actions{display:flex;gap:10px;margin-top:8px}
+.actions .sp{flex:1}
+.stamp{font-size:12.5px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+
+/* Settings */
+.colors{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.crow{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.crow span{flex:1;font-size:13px}
+input[type=color]{width:34px;height:28px;border:0;padding:0;background:none;cursor:pointer;flex:none}
+input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+input[type=color]::-webkit-color-swatch{border:1px solid var(--line);border-radius:6px}
+.presets{display:flex;gap:7px;flex-wrap:wrap}
+.preset{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:10px;height:38px;padding:0 11px 0 8px;display:flex;gap:7px;align-items:center;font-size:13.5px}
+.preset i{display:flex;width:28px;height:18px;border-radius:4px;overflow:hidden;border:1px solid rgba(0,0,0,.1)}
+.preset i b{flex:1}
+.cat{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+.cat .field{height:40px}
+.wrap{flex-wrap:wrap}
+.note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+
+/* Drive file list */
+.files{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.fileopt{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:11px;padding:11px 12px}
+.fileopt div{flex:1;min-width:0}
+.fileopt b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fileopt small{color:var(--muted);font-size:12px}
+.fileopt.cur{border-color:var(--accent)}
+
+/* Welcome */
+.welcome{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;gap:12px}
+.welcome h1{margin:6px 0 0;font-size:26px;letter-spacing:-.4px}
+.welcome h1 b{color:var(--accent)}
+.welcome p{margin:0 0 6px;color:var(--muted);max-width:320px}
+.welcome .btn{width:260px;height:46px}
+.welcome .btn.ghost{background:var(--surface)}
+.welcome .field{width:300px;max-width:100%;text-align:center;font-size:13px}
+.welcome small{color:var(--muted);max-width:310px;font-size:12.5px}
+
+.toast{position:fixed;left:50%;bottom:calc(60px + var(--sab));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:14px;z-index:30;max-width:90%;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:fade .15s;text-align:center}
+.banner{margin:0 14px 8px;padding:9px 10px;border-radius:10px;background:color-mix(in srgb,#D49A2A 18%,var(--surface));border:1px solid color-mix(in srgb,#D49A2A 45%,var(--line));display:flex;gap:10px;align-items:center;font-size:13.5px}
+.banner span{flex:1}
+.banner .btn{height:34px;padding:0 12px;font-size:13.5px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg width="24" height="24" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4C46 14 54 30 50 44 47 55 40 60 32 60S17 55 14 44C10 30 18 14 32 4Z" fill="var(--accent)"/><path d="M22 33l7 7 14-15" stroke="var(--on-accent)" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Almon<b>DOO</b></span>
+  </div>
+  <button class="filechip" id="fileChip" title="CSV file in Google Drive"><i class="dot" id="fileDot"></i><span id="fileName">No file</span></button>
+  <button class="iconbtn" id="filterBtn" title="Search & filters"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4.5 4.5"/></svg></button>
+  <button class="iconbtn" id="settingsBtn" title="Settings"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h7M12 4h2M2 8h2M7 8h7M2 12h8M13 12h1"/><circle cx="10.5" cy="4" r="1.5"/><circle cx="5.5" cy="8" r="1.5"/><circle cx="11.5" cy="12" r="1.5"/></svg></button>
+</header>
+
+<div class="banner hide" id="banner"><span id="bannerText"></span><button class="btn" id="bannerBtn"></button></div>
+
+<div class="toolbar" id="toolbar">
+  <div class="row"><input class="search" id="q" placeholder="Search…" autocomplete="off" type="search"></div>
+  <div class="row"><div class="seg" id="statusSeg"></div></div>
+  <div class="row">
+    <span class="lbl">Group</span>
+    <select class="mini" id="groupBy">
+      <option value="none">None</option><option value="category">Category</option>
+      <option value="status">Status</option><option value="due">Due date</option>
+    </select>
+    <span class="lbl">Sort</span>
+    <select class="mini" id="sortBy">
+      <option value="due">Due date</option><option value="name">Name</option>
+      <option value="category">Category</option><option value="status">Status</option>
+      <option value="created">Created</option><option value="completed">Completed</option>
+    </select>
+    <button class="iconbtn" id="sortDir" title="Sort direction" style="width:36px;height:36px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 2.5v11M2.5 11 5 13.5 7.5 11"/><path d="M11 13.5v-11M8.5 5 11 2.5 13.5 5" opacity=".35"/></svg></button>
+  </div>
+</div>
+<div class="chips" id="chips"></div>
+
+<form class="add" id="addForm" autocomplete="off">
+  <input id="addInput" placeholder="Add a to do…" enterkeyhint="done">
+  <button class="mic hide" type="button" id="micBtn" title="Say “Add …”"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button>
+  <button class="btn" type="submit" id="addBtn">Add</button>
+</form>
+
+<main id="list"></main>
+
+<footer><span id="count"></span><button id="saveState" title="Sync now"></button></footer>
+
+<!-- Welcome / setup -->
+<div class="welcome hide" id="welcome">
+  <svg width="64" height="64" viewBox="0 0 64 64"><path d="M32 4C46 14 54 30 50 44 47 55 40 60 32 60S17 55 14 44C10 30 18 14 32 4Z" fill="var(--accent)"/><path d="M22 33l7 7 14-15" stroke="var(--on-accent)" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <h1>Almon<b>DOO</b></h1>
+  <p id="wText"></p>
+  <input class="field hide" id="wClientId" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+  <button class="btn" id="wMain"></button>
+  <button class="btn ghost hide" id="wAlt"></button>
+  <small id="wNote"></small>
+</div>
+
+<script>
+/* Paste your Google OAuth Client ID here — or leave it blank and paste it on the setup screen. */
+const CLIENT_ID = '';
+</script>
+<script>
+(() => {
+'use strict';
+
+/* ---------- constants & state ---------- */
+const STATUSES = ['To do','In progress','Waiting','Done'];
+const DEFAULT_CATS = [
+  {name:'New',color:'#9A8C7E'},{name:'Work',color:'#3E7CB1'},{name:'House',color:'#5E9A55'},
+  {name:'Family',color:'#C8664A'},{name:'Writer',color:'#8A5BB5'}];
+const PRESETS = {
+  Almond:  {bg:'#F6EFE4',surface:'#FFFBF5',text:'#2E241B',muted:'#8A7765',accent:'#B9824B',onAccent:'#FFFFFF',line:'#E6D9C6',danger:'#C0492F'},
+  Lavender:{bg:'#F2EEF8',surface:'#FCFAFF',text:'#2A2238',muted:'#7F7491',accent:'#8E62C8',onAccent:'#FFFFFF',line:'#E2DAEE',danger:'#C0492F'},
+  Roasted: {bg:'#1E1915',surface:'#2A231D',text:'#F2E8DA',muted:'#A8957F',accent:'#D9A066',onAccent:'#1E1915',line:'#3D332A',danger:'#E5735A'},
+  Sage:    {bg:'#EEF2EC',surface:'#FAFCF8',text:'#1F2A22',muted:'#6E7F72',accent:'#4F7F5C',onAccent:'#FFFFFF',line:'#D5DFD3',danger:'#B84A3A'},
+  Midnight:{bg:'#12161F',surface:'#1B2130',text:'#E6EAF2',muted:'#8B95A8',accent:'#6E9BFF',onAccent:'#0E1220',line:'#2A3245',danger:'#FF6B6B'},
+  Paper:   {bg:'#FFFFFF',surface:'#FFFFFF',text:'#111111',muted:'#6B6B6B',accent:'#111111',onAccent:'#FFFFFF',line:'#E3E3E3',danger:'#D0342C'},
+};
+const COLOR_FIELDS = [
+  ['bg','Background'],['surface','Cards & panels'],['text','Text'],['muted','Secondary text'],
+  ['accent','Accent'],['onAccent','Text on accent'],['line','Borders'],['danger','Overdue']];
+const CSV_HEAD = ['ID','Name','Description','Category','Status','Due Date','Completion Date','Created','URL'];
+const FIELDS = ['name','desc','category','status','due','completed','created','url'];
+const LS = 'almondoo.';
+const API = 'https://www.googleapis.com/drive/v3';
+const UPLOAD = 'https://www.googleapis.com/upload/drive/v3';
+const SCOPE = 'https://www.googleapis.com/auth/drive';
+const REDIRECT = location.origin + location.pathname.replace(/index\.html$/,'');
+
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(LS+k); return v==null?d:JSON.parse(v);}catch{return d;} },
+  set(k,v){ try{ localStorage.setItem(LS+k,JSON.stringify(v)); }catch{} }
+};
+
+let settings = Object.assign({ colors:{...PRESETS.Almond}, cats: DEFAULT_CATS.map(c=>({...c})) }, store.get('settings',{}));
+settings.colors = Object.assign({...PRESETS.Almond}, settings.colors);
+let view = Object.assign({cats:[],q:'',statuses:['To do','In progress','Waiting'],group:'category',sort:'due',dir:1,collapsed:[],filters:false}, store.get('view',{}));
+if(!Array.isArray(view.statuses)) view.statuses=['To do','In progress','Waiting'];
+
+let items = store.get('items',[]);              // what you see (saved on the phone too, for offline)
+let base  = store.get('base',null);             // the file as it was when we last read/wrote it
+let baseMd5 = store.get('baseMd5','');
+let dirty = store.get('dirty',false);           // local changes not yet in Drive
+let file  = store.get('file',null);             // {id,name}
+let token = store.get('token',null);            // {v,exp}
+let clientId = CLIENT_ID || store.get('clientId','');
+let busy=false, again=false, syncTimer=null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const today = () => { const d=new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const catColor = n => (settings.cats.find(c=>c.name===n)||{color:'#9A8C7E'}).color;
+const clone = a => a.map(t=>({...t}));
+
+/* ---------- theme ---------- */
+function applyTheme(){
+  const c=settings.colors, r=document.documentElement.style;
+  r.setProperty('--bg',c.bg); r.setProperty('--surface',c.surface); r.setProperty('--text',c.text);
+  r.setProperty('--muted',c.muted); r.setProperty('--accent',c.accent); r.setProperty('--on-accent',c.onAccent);
+  r.setProperty('--line',c.line); r.setProperty('--danger',c.danger);
+  const hx=c.bg.replace('#',''), lum=(parseInt(hx.slice(0,2),16)*299+parseInt(hx.slice(2,4),16)*587+parseInt(hx.slice(4,6),16)*114)/1000;
+  r.colorScheme = lum<128 ? 'dark' : 'light';
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content',c.bg);
+}
+const saveSettings = () => { store.set('settings',settings); applyTheme(); };
+
+/* ---------- CSV (identical format to the Mac app) ---------- */
+function parseCSV(text){
+  const rows=[]; let row=[], f='', q=false;
+  text=text.replace(/^﻿/,'');
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){
+      if(ch==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; }
+      else f+=ch;
+    } else if(ch==='"') q=true;
+    else if(ch===','){ row.push(f); f=''; }
+    else if(ch==='\n'||ch==='\r'){ if(ch==='\r'&&text[i+1]==='\n') i++; row.push(f); rows.push(row); row=[]; f=''; }
+    else f+=ch;
+  }
+  if(f!==''||row.length){ row.push(f); rows.push(row); }
+  return rows.filter(r=>r.some(c=>c.trim()!==''));
+}
+const KEYMAP = {id:'id',name:'name',title:'name',todo:'name',task:'name',description:'desc',desc:'desc',notes:'desc',
+  category:'category',status:'status',duedate:'due',due:'due',completiondate:'completed',completeddate:'completed',
+  completed:'completed',datecompleted:'completed',created:'created',createddate:'created',url:'url',link:'url',website:'url',web:'url'};
+function normDate(s){
+  s=(s||'').trim(); if(!s) return '';
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(m){ const y=m[3].length===2?'20'+m[3]:m[3]; return `${y}-${pad(m[1])}-${pad(m[2])}`; }
+  const d=new Date(s); return isNaN(d)?s:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function fromCSV(text){
+  const rows=parseCSV(text); if(!rows.length) return [];
+  const keys=rows[0].map(h=>KEYMAP[h.toLowerCase().replace(/[^a-z]/g,'')]||null);
+  return rows.slice(1).map(r=>{
+    const o={}; keys.forEach((k,i)=>{ if(k) o[k]=(r[i]??'').trim(); });
+    const st=STATUSES.find(s=>s.toLowerCase()===(o.status||'').toLowerCase())||(o.completed?'Done':'To do');
+    return {id:o.id||uid(), name:o.name||'(untitled)', desc:o.desc||'', category:o.category||'New',
+      status:st, due:normDate(o.due), completed:normDate(o.completed), created:normDate(o.created)||today(), url:o.url||''};
+  });
+}
+function toCSV(list=items){
+  const q=v=>{ v=String(v??''); return /[",\r\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const lines=[CSV_HEAD.join(',')];
+  for(const t of list) lines.push([t.id,t.name,t.desc,t.category,t.status,t.due,t.completed,t.created,t.url].map(q).join(','));
+  return lines.join('\r\n')+'\r\n';
+}
+function syncCats(){
+  let changed=false;
+  for(const t of items) if(t.category && !settings.cats.some(c=>c.name===t.category)){
+    settings.cats.push({name:t.category,color:'#'+Math.floor(0x404040+Math.random()*0x9f9f9f).toString(16).padStart(6,'0')}); changed=true; }
+  if(changed) saveSettings();
+}
+
+/* ---------- 3-way merge ----------
+   base = file as last seen, local = this phone's list, remote = file as it is now in Drive.
+   Per to do and per field: whichever side changed it wins; if both changed the same field, this phone wins.
+   Deleted on one side and untouched on the other → deleted. Deleted on one side but edited on the other → kept. */
+function merge3(baseList,local,remote){
+  const B=new Map(baseList.map(t=>[t.id,t])), L=new Map(local.map(t=>[t.id,t])), R=new Map(remote.map(t=>[t.id,t]));
+  const same=(a,b)=>FIELDS.every(f=>(a[f]||'')===(b[f]||''));
+  const out=[], seen=new Set();
+  for(const id of [...remote.map(t=>t.id),...local.map(t=>t.id)]){
+    if(seen.has(id)) continue; seen.add(id);
+    const b=B.get(id), l=L.get(id), r=R.get(id);
+    if(l&&r){
+      if(!b){ out.push({...l}); continue; }
+      const m={id}; for(const f of FIELDS) m[f]=((l[f]||'')!==(b[f]||''))?l[f]:r[f]; out.push(m);
+    } else if(l){ if(!b||!same(l,b)) out.push({...l}); }
+    else if(r){ if(!b||!same(r,b)) out.push({...r}); }
+  }
+  return out;
+}
+
+/* ---------- Google sign-in (redirect flow — works inside an installed Android app) ---------- */
+class AuthError extends Error{ constructor(){ super('Signed out of Google'); this.name='AuthError'; } }
+const tokenValid = () => token && token.v && token.exp > Date.now()+60000;
+function signIn(silent){
+  if(!clientId){ showWelcome('setup'); return; }
+  persistLocal();
+  const st=uid(); store.set('oauthState',st);
+  if(silent) store.set('silentAt',Date.now());
+  const p=new URLSearchParams({client_id:clientId,redirect_uri:REDIRECT,response_type:'token',scope:SCOPE,include_granted_scopes:'true',state:st});
+  if(silent) p.set('prompt','none');
+  const hint=store.get('email',''); if(hint) p.set('login_hint',hint);
+  location.assign('https://accounts.google.com/o/oauth2/v2/auth?'+p);
+}
+function readRedirect(){ // returns 'ok' | 'error:<code>' | null
+  if(!location.hash || !/access_token=|error=/.test(location.hash)) return null;
+  const h=new URLSearchParams(location.hash.slice(1));
+  history.replaceState(null,'',location.pathname+location.search);
+  if(h.get('state')!==store.get('oauthState','')) return 'error:state';
+  store.set('oauthState','');
+  if(h.get('error')) return 'error:'+h.get('error');
+  token={v:h.get('access_token'),exp:Date.now()+(+h.get('expires_in')||3600)*1000};
+  store.set('token',token); store.set('signedIn',true);
+  return 'ok';
+}
+// Called when Google says we need to sign in again. Re-signs quietly if you're not in the middle of something.
+function needAuth(){
+  token=null; store.set('token',null);
+  const recent=Date.now()-store.get('silentAt',0) < 90000;
+  const busyUser = !!sheetEl || $('#addInput').value.trim() || listening;
+  if(navigator.onLine && store.get('signedIn',false) && !recent && !busyUser){ signIn(true); return; }
+  setFileChip('warn'); setSave(dirty?'Not saved yet':'');
+  setBanner('Google sign-in expired.','Sign in',()=>signIn(false));
+}
+async function g(url,opts={}){
+  if(!tokenValid()) throw new AuthError();
+  const r=await fetch(url,{...opts,cache:'no-store',headers:{...(opts.headers||{}),Authorization:'Bearer '+token.v}});
+  if(r.status===401){ throw new AuthError(); }
+  if(!r.ok){ let m='Drive error '+r.status; try{ const j=await r.json(); m=(j.error&&j.error.message)||m; }catch{} const e=new Error(m); e.status=r.status; throw e; }
+  return r;
+}
+
+/* ---------- Drive sync ---------- */
+function persistLocal(){ store.set('items',items); store.set('base',base); store.set('baseMd5',baseMd5); store.set('dirty',dirty); store.set('file',file); }
+async function sync(){
+  if(!file) return;
+  if(busy){ again=true; return; }
+  if(!navigator.onLine){ setSave(dirty?'Offline · will save':'Offline'); setFileChip('warn'); return; }
+  if(!tokenValid()){ needAuth(); return; }
+  busy=true; again=false; clearTimeout(syncTimer);
+  if(dirty) setSave('Saving…');
+  try{
+    const m=await (await g(`${API}/files/${encodeURIComponent(file.id)}?fields=id,name,md5Checksum,trashed&supportsAllDrives=true`)).json();
+    if(m.trashed) throw new Error(`${m.name} is in the Drive trash`);
+    if(m.name!==file.name){ file.name=m.name; setFileChip(); }
+    if(m.md5Checksum!==baseMd5){
+      const remote=fromCSV(await (await g(`${API}/files/${encodeURIComponent(file.id)}?alt=media&supportsAllDrives=true`)).text());
+      const first=!baseMd5;
+      if(dirty){ items=merge3(base||[],items,remote); }
+      else { items=remote; base=clone(remote); baseMd5=m.md5Checksum; }
+      syncCats(); persistLocal(); render();
+      if(!dirty && !first) toast('Updated from Drive');
+    }
+    if(dirty){
+      const snapshot=clone(items);
+      const r=await (await g(`${UPLOAD}/files/${encodeURIComponent(file.id)}?uploadType=media&fields=md5Checksum&supportsAllDrives=true`,
+        {method:'PATCH',headers:{'Content-Type':'text/csv'},body:toCSV(snapshot)})).json();
+      base=snapshot; baseMd5=r.md5Checksum;
+      if(JSON.stringify(snapshot)===JSON.stringify(items)) dirty=false; else again=true;   // edited while saving → go again
+      persistLocal();
+    }
+    setSave(dirty?'…':'Saved'); setFileChip(); setBanner();
+  }catch(e){
+    if(e.name==='AuthError'){ busy=false; needAuth(); return; }
+    if(e.status===404){ setFileChip('err'); setBanner(`Can’t find ${file.name} in Drive any more.`,'Choose file',()=>openFilePicker()); }
+    else if(!navigator.onLine || e instanceof TypeError){ setSave(dirty?'Offline · will save':'Offline'); setFileChip('warn'); }
+    else { setSave('Not saved'); setFileChip('err'); setBanner(`Couldn’t sync: ${e.message}`,'Try again',()=>{ setBanner(); sync(); }); }
+  }
+  busy=false;
+  if(again){ again=false; syncTimer=setTimeout(sync,300); }
+}
+function commit(){ // after every change
+  dirty=true; persistLocal(); render();
+  setSave(navigator.onLine?'…':'Offline · will save');
+  clearTimeout(syncTimer); syncTimer=setTimeout(sync,500);
+}
+async function listCSVs(search){
+  let q="trashed=false and (mimeType='text/csv' or name contains '.csv')";
+  if(search) q+=` and name contains '${search.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}'`;
+  const p=new URLSearchParams({q,fields:'files(id,name,modifiedTime)',orderBy:'modifiedTime desc',pageSize:'40',includeItemsFromAllDrives:'true',supportsAllDrives:'true'});
+  return (await (await g(`${API}/files?${p}`)).json()).files||[];
+}
+async function createCSV(){
+  const boundary='almondoo'+uid();
+  const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name:'AlmonDOO.csv',mimeType:'text/csv'})}\r\n--${boundary}\r\nContent-Type: text/csv\r\n\r\n${toCSV()}\r\n--${boundary}--`;
+  return (await g(`${UPLOAD}/files?uploadType=multipart&fields=id,name,md5Checksum`,{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+boundary},body})).json();
+}
+function useFile(f,created){
+  file={id:f.id,name:f.name};
+  if(created){ base=clone(items); baseMd5=f.md5Checksum; dirty=false; }
+  else { base=null; baseMd5=''; dirty=false; }
+  persistLocal(); closeSheet(); hideWelcome(); setFileChip(); render(); sync();
+  toast((created?'Created ':'Opened ')+f.name);
+}
+async function fetchEmail(){
+  try{ const j=await (await g(`${API}/about?fields=user(emailAddress)`)).json(); store.set('email',j.user.emailAddress); }catch{}
+}
+
+// keep up with changes made on the Mac
+setInterval(()=>{ if(!document.hidden && file && tokenValid() && !busy) sync(); },15000);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) sync(); else if(dirty) sync(); });
+window.addEventListener('online',()=>sync());
+window.addEventListener('offline',()=>{ setSave(dirty?'Offline · will save':'Offline'); setFileChip('warn'); });
+
+function setFileChip(state){
+  $('#fileName').textContent = file ? file.name : 'No file';
+  $('#fileDot').className='dot '+(state||(!file?'warn':!navigator.onLine||!tokenValid()?'warn':'ok'));
+}
+function setSave(s){ $('#saveState').textContent=s; }
+function setBanner(text,btn,fn){
+  const b=$('#banner'); if(!text){ b.classList.add('hide'); return; }
+  $('#bannerText').textContent=text; $('#bannerBtn').textContent=btn; $('#bannerBtn').onclick=fn; b.classList.remove('hide');
+}
+$('#saveState').onclick=()=>sync();
+$('#fileChip').onclick=()=>openSettings();
+
+/* ---------- welcome screens ---------- */
+function showWelcome(kind,note){
+  const w=$('#welcome'); w.classList.remove('hide');
+  const main=$('#wMain'), alt=$('#wAlt'), cid=$('#wClientId');
+  alt.classList.add('hide'); cid.classList.add('hide'); $('#wNote').textContent=note||'';
+  if(kind==='setup'){
+    $('#wText').textContent='One-time setup: paste the Google OAuth Client ID you created for AlmonDOO.';
+    cid.classList.remove('hide'); cid.value=clientId;
+    main.textContent='Save'; main.onclick=()=>{ const v=cid.value.trim(); if(!/\.apps\.googleusercontent\.com$/.test(v)) return toast('That doesn’t look like a Client ID'); clientId=v; store.set('clientId',v); showWelcome('signin'); };
+    $('#wNote').textContent=`Use this exact address as the “Authorized redirect URI” and JavaScript origin: ${REDIRECT}`;
+  } else if(kind==='signin'){
+    $('#wText').textContent='Sign in with Google to use the same to do list as your Mac.';
+    main.textContent='Sign in with Google'; main.onclick=()=>signIn(false);
+    alt.textContent='Change Client ID'; alt.classList.remove('hide'); alt.onclick=()=>showWelcome('setup');
+  } else if(kind==='pick'){
+    $('#wText').textContent='Choose the CSV file your Mac uses. It’s in your Google Drive.';
+    main.textContent='Choose CSV in Google Drive'; main.onclick=()=>openFilePicker();
+  }
+}
+function hideWelcome(){ $('#welcome').classList.add('hide'); }
+
+/* ---------- filtering / sorting / grouping (same as Mac) ---------- */
+const statusRank = s => STATUSES.indexOf(s);
+const catRank = n => { const i=settings.cats.findIndex(c=>c.name===n); return i<0?999:i; };
+function dueBucket(t){
+  if(t.status==='Done') return 'Done';
+  if(!t.due) return 'No due date';
+  const td=today(); if(t.due<td) return 'Overdue'; if(t.due===td) return 'Today';
+  const wk=new Date(); wk.setDate(wk.getDate()+7);
+  const w=`${wk.getFullYear()}-${pad(wk.getMonth()+1)}-${pad(wk.getDate())}`;
+  return t.due<=w ? 'Next 7 days' : 'Later';
+}
+const DUE_ORDER=['Overdue','Today','Next 7 days','Later','No due date','Done'];
+function cmp(a,b){
+  const d=view.dir, s=view.sort;
+  const blankLast=(x,y)=> !x&&!y?0 : !x?1 : !y?-1 : (x<y?-d:x>y?d:0);
+  let r=0;
+  if(s==='due') r=blankLast(a.due,b.due);
+  else if(s==='completed') r=blankLast(a.completed,b.completed);
+  else if(s==='name') r=d*a.name.localeCompare(b.name,undefined,{sensitivity:'base'});
+  else if(s==='category') r=d*(catRank(a.category)-catRank(b.category));
+  else if(s==='status') r=d*(statusRank(a.status)-statusRank(b.status));
+  else if(s==='created') r=d*(a.created<b.created?-1:a.created>b.created?1:0);
+  return r || a.name.localeCompare(b.name);
+}
+function visible(){
+  const q=view.q.trim().toLowerCase();
+  return items.filter(t=>
+    (!view.cats.length || view.cats.includes(t.category)) &&
+    view.statuses.includes(t.status) &&
+    (!q || (t.name+' '+t.desc+' '+t.category).toLowerCase().includes(q))
+  ).sort(cmp);
+}
+
+/* ---------- rendering ---------- */
+const CHECK='<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2 5 8.6l4.5-5"/></svg>';
+function fmtDate(s){
+  if(!s) return ''; const [y,m,d]=s.split('-').map(Number); if(!d) return s;
+  const dt=new Date(y,m-1,d); const opt={month:'short',day:'numeric'};
+  if(y!==new Date().getFullYear()) opt.year='numeric';
+  return dt.toLocaleDateString(undefined,opt);
+}
+function normUrl(u){
+  u=(u||'').trim(); if(!u) return '';
+  if(/^[a-z][a-z0-9+.-]*:/i.test(u)) return u;
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return 'mailto:'+u;
+  return 'https://'+u;
+}
+function openLink(u){
+  if(!/^(https?:|mailto:)/i.test(u||'')) return toast('That link isn’t a web address');
+  window.open(u,'_blank','noopener');
+}
+function dueHint(due){
+  const [y,m,d]=due.split('-').map(Number); if(!d) return '';
+  const n=new Date(); const diff=Math.round((new Date(y,m-1,d)-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/864e5);
+  if(diff===0) return 'Today'; if(diff===1) return 'Tomorrow'; if(diff===-1) return '1 day late';
+  if(diff<0) return `${-diff} days late`; if(diff<7) return new Date(y,m-1,d).toLocaleDateString(undefined,{weekday:'long'});
+  return `in ${diff} days`;
+}
+function itemHTML(t){
+  const td=today(), done=t.status==='Done';
+  const dueCls = !t.due ? 'none' : done ? '' : (t.due<td?'over':t.due===td?'today':'');
+  const stCls = t.status==='In progress'?'prog':t.status==='Waiting'?'wait':'';
+  const showCat = view.group!=='category';
+  const meta = [
+    showCat?`<span class="pill"><i></i>${esc(t.category)}</span>`:'',
+    !done&&t.status!=='To do'?`<span class="st ${stCls}">${esc(t.status)}</span>`:'',
+    done&&t.completed?`<span>✓ Completed ${fmtDate(t.completed)}</span>`:'',
+    t.url?`<a class="lnk" data-act="link" href="${esc(t.url)}">link</a>`:''
+  ].join('');
+  return `<div class="item${done?' done':''}" data-id="${esc(t.id)}" style="--c:${catColor(t.category)}">
+    <button class="check" data-act="toggle" aria-label="${done?'Mark not done':'Mark done'}">${CHECK}</button>
+    <div class="body">
+      <div class="name">${esc(t.name)}</div>
+      ${t.desc?`<div class="desc">${esc(t.desc)}</div>`:''}
+      ${meta?`<div class="meta">${meta}</div>`:''}
+    </div>
+    <div class="due ${dueCls}">${t.due?`<b>${fmtDate(t.due)}</b>${done?'':`<small>${dueHint(t.due)}</small>`}`:'<b>—</b>'}</div>
+  </div>`;
+}
+function render(){
+  const counts={}; items.forEach(t=>counts[t.category]=(counts[t.category]||0)+1);
+  $('#chips').innerHTML = `<button class="chip${view.cats.length?'':' on'}" data-cat="">All <span class="n">${items.length}</span></button>` +
+    settings.cats.map(c=>`<button class="chip${view.cats.includes(c.name)?' on':''}" data-cat="${esc(c.name)}" style="--c:${c.color}"><i class="sw" style="background:${c.color}"></i>${esc(c.name)} <span class="n">${counts[c.name]||0}</span></button>`).join('');
+
+  const list=visible(), el=$('#list');
+  if(!items.length){ el.innerHTML='<div class="empty"><b>Nothing to do… yet</b>Type above or tap the mic and say “Add …”.</div>'; }
+  else if(!list.length){ el.innerHTML='<div class="empty"><b>No matches</b>Try a different filter, search, or status.</div>'; }
+  else if(view.group==='none'){ el.innerHTML=list.map(itemHTML).join(''); }
+  else {
+    const groups=new Map(); let order;
+    if(view.group==='category') order=settings.cats.map(c=>c.name);
+    else if(view.group==='status') order=STATUSES;
+    else order=DUE_ORDER;
+    order.forEach(k=>groups.set(k,[]));
+    for(const t of list){ const k=view.group==='category'?t.category:view.group==='status'?t.status:dueBucket(t);
+      if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(t); }
+    let html='';
+    for(const [k,arr] of groups){ if(!arr.length) continue;
+      const key=view.group+':'+k, col=view.collapsed.includes(key);
+      const sw = view.group==='category'?`<i class="sw" style="background:${catColor(k)}"></i>`:'';
+      html+=`<section class="group${col?' collapsed':''}"><div class="gh" data-key="${esc(key)}">${sw}${esc(k)} <span class="cnt">${arr.length}</span>
+        <svg class="car" width="12" height="12" viewBox="0 0 10 10"><path d="M2 3.5 5 6.5 8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+        <div class="items">${arr.map(itemHTML).join('')}</div></section>`;
+    }
+    el.innerHTML=html;
+  }
+  const open=items.filter(t=>t.status!=='Done').length, over=items.filter(t=>t.status!=='Done'&&t.due&&t.due<today()).length;
+  $('#count').textContent=`${open} open · ${items.length-open} done${over?` · ${over} overdue`:''}`;
+  $('#statusSeg').innerHTML=STATUSES.map(s=>`<button class="${view.statuses.includes(s)?'on':''}" data-st="${s}">${s}</button>`).join('');
+  if(document.activeElement!==$('#q')) $('#q').value=view.q;
+  $('#groupBy').value=view.group; $('#sortBy').value=view.sort;
+  $('#sortDir').style.transform=view.dir<0?'scaleY(-1)':'';
+  $('#toolbar').classList.toggle('hide',!view.filters);
+  $('#filterBtn').classList.toggle('on',view.filters || !!view.q);
+  store.set('view',view);
+}
+
+/* ---------- interactions ---------- */
+$('#filterBtn').onclick=()=>{ view.filters=!view.filters; render(); if(view.filters) $('#q').focus(); };
+$('#chips').onclick=e=>{ const b=e.target.closest('.chip'); if(!b) return; const c=b.dataset.cat;
+  if(!c) view.cats=[]; else view.cats = (view.cats.length===1&&view.cats[0]===c)?[]:[c];
+  render(); };
+$('#q').oninput=e=>{ view.q=e.target.value; render(); };
+$('#statusSeg').onclick=e=>{ const b=e.target.closest('[data-st]'); if(!b) return; const st=b.dataset.st;
+  view.statuses = view.statuses.includes(st) ? view.statuses.filter(x=>x!==st) : [...view.statuses,st];
+  if(!view.statuses.length) view.statuses=[...STATUSES];
+  render(); };
+$('#groupBy').onchange=e=>{ view.group=e.target.value; render(); };
+$('#sortBy').onchange=e=>{ view.sort=e.target.value; render(); };
+$('#sortDir').onclick=()=>{ view.dir*=-1; render(); };
+function addItem(name){
+  items.push({id:uid(),name,desc:'',category:'New',status:'To do',due:'',completed:'',created:today(),url:''});
+  if(view.cats.length && !view.cats.includes('New')) toast('Added to New — it’s hidden by the current filter');
+  commit();
+}
+$('#addForm').onsubmit=e=>{ e.preventDefault(); const v=$('#addInput').value.trim(); if(!v) return;
+  addItem(v); $('#addInput').value=''; $('#addInput').blur(); };
+$('#list').onclick=e=>{
+  const gh=e.target.closest('.gh'); if(gh){ const k=gh.dataset.key; view.collapsed=view.collapsed.includes(k)?view.collapsed.filter(x=>x!==k):[...view.collapsed,k]; render(); return; }
+  const it=e.target.closest('.item'); if(!it) return; const t=items.find(x=>x.id===it.dataset.id); if(!t) return;
+  if(e.target.closest('[data-act=link]')){ e.preventDefault(); openLink(t.url); return; }
+  if(e.target.closest('[data-act=toggle]')){ setStatus(t, t.status==='Done'?'To do':'Done'); commit(); if(navigator.vibrate) navigator.vibrate(15);
+    if(t.status==='Done'&&!view.statuses.includes('Done')) toast(`Completed “${t.name}”`); }
+  else openEditor(t);
+};
+function setStatus(t,s){ t.status=s; if(s==='Done'){ if(!t.completed) t.completed=today(); } else t.completed=''; }
+
+/* ---------- voice: tap the mic, say “Add …” ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec=null, listening=false;
+// Returns the task name if the phrase starts with “add”, otherwise null.
+function parseSpoken(text){
+  const m=String(text||'').trim().match(/^(?:add|ad)\b[\s,.:;-]*(.+)$/i);
+  if(!m) return null;
+  let n=m[1].trim().replace(/[.!?]+$/,'').trim();
+  if(!n) return null;
+  return n.charAt(0).toUpperCase()+n.slice(1);
+}
+function setListening(on){
+  listening=on; $('#micBtn').classList.toggle('live',on); $('#addForm').classList.toggle('live',on);
+  $('#addInput').placeholder = on ? 'Listening… say “Add …”' : 'Add a to do…';
+  if(!on && $('#addInput').dataset.voice){ $('#addInput').value=''; delete $('#addInput').dataset.voice; }
+}
+function startVoice(){
+  if(listening){ rec&&rec.stop(); return; }
+  rec=new SR(); rec.lang=navigator.language||'en-US'; rec.interimResults=true; rec.maxAlternatives=4; rec.continuous=false;
+  let handled=false;
+  rec.onstart=()=>{ setListening(true); if(navigator.vibrate) navigator.vibrate(20); };
+  rec.onresult=e=>{
+    const res=e.results[e.results.length-1];
+    const inp=$('#addInput'); inp.dataset.voice='1'; inp.value=res[0].transcript;
+    if(!res.isFinal || handled) return;
+    handled=true;
+    const alts=[...res].map(a=>a.transcript);
+    const name=alts.map(parseSpoken).find(Boolean);
+    if(name){ addItem(name); toast(`Added “${name}”`); if(navigator.vibrate) navigator.vibrate([20,40,20]); }
+    else toast(`Heard “${alts[0].trim()}” — start with “Add”`);
+  };
+  rec.onerror=e=>{
+    if(e.error==='not-allowed'||e.error==='service-not-allowed') toast('Microphone permission is off for AlmonDOO');
+    else if(e.error==='no-speech') toast('Didn’t hear anything — tap the mic and say “Add …”');
+    else if(e.error==='network') toast('Voice needs an internet connection');
+    else if(e.error!=='aborted') toast('Voice error: '+e.error);
+  };
+  rec.onend=()=>setListening(false);
+  try{ rec.start(); }catch(e){ toast('Couldn’t start the microphone'); }
+}
+if(SR){ $('#micBtn').classList.remove('hide'); $('#micBtn').onclick=startVoice; }
+
+/* ---------- sheets (Android back button closes them) ---------- */
+let sheetEl=null, skipPop=false;
+function openSheet(html,onMount){
+  if(sheetEl) sheetEl.remove(); else history.pushState({sheet:1},'');
+  sheetEl=document.createElement('div'); sheetEl.className='scrim';
+  sheetEl.innerHTML=`<div class="sheet" role="dialog">${html}</div>`;
+  sheetEl.addEventListener('click',e=>{ if(e.target===sheetEl) closeSheet(); });
+  document.body.appendChild(sheetEl); onMount&&onMount(sheetEl.querySelector('.sheet'));
+}
+function closeSheet(fromPop){
+  if(!sheetEl) return; sheetEl.remove(); sheetEl=null;
+  if(!fromPop && history.state && history.state.sheet){ skipPop=true; history.back(); }
+}
+window.addEventListener('popstate',()=>{ if(skipPop){ skipPop=false; return; } closeSheet(true); });
+
+function openEditor(t){
+  const catOpts=settings.cats.map(c=>`<option ${c.name===t.category?'selected':''}>${esc(c.name)}</option>`).join('');
+  const stOpts=STATUSES.map(s=>`<option ${s===t.status?'selected':''}>${s}</option>`).join('');
+  openSheet(`
+    <h2><span>Edit to do</span><button class="iconbtn" data-x aria-label="Close">✕</button></h2>
+    <div class="f"><label>Name</label><input class="field" id="eName" value="${esc(t.name)}" maxlength="140"></div>
+    <div class="f"><label>Short description</label><textarea class="field" id="eDesc" maxlength="400">${esc(t.desc)}</textarea></div>
+    <div class="f"><label>URL</label><div class="row"><input class="field" id="eUrl" type="url" placeholder="https://…" value="${esc(t.url||'')}"><button class="btn ghost" id="eUrlGo" type="button">Open</button></div></div>
+    <div class="grid2">
+      <div class="f"><label>Category</label><select class="field" id="eCat">${catOpts}</select></div>
+      <div class="f"><label>Status</label><select class="field" id="eSt">${stOpts}</select></div>
+      <div class="f"><label>Due date</label><input type="date" class="field" id="eDue" value="${esc(t.due)}"></div>
+      <div class="f"><label>Completed</label><input type="date" class="field" id="eComp" value="${esc(t.completed)}"></div>
+    </div>
+    <div class="stamp">Created ${fmtDate(t.created)||'—'}</div>
+    <div class="actions"><button class="btn danger" id="eDel">Delete</button><span class="sp"></span><button class="btn" id="eSave">Done</button></div>`,
+  s=>{
+    const name=s.querySelector('#eName');
+    s.querySelector('[data-x]').onclick=()=>closeSheet();
+    s.querySelector('#eSt').onchange=e=>{ const c=s.querySelector('#eComp');
+      if(e.target.value==='Done'&&!c.value) c.value=today(); if(e.target.value!=='Done') c.value=''; };
+    s.querySelector('#eComp').onchange=e=>{ if(e.target.value) s.querySelector('#eSt').value='Done'; };
+    const save=()=>{ t.name=name.value.trim()||t.name; t.desc=s.querySelector('#eDesc').value.trim(); t.url=normUrl(s.querySelector('#eUrl').value);
+      t.category=s.querySelector('#eCat').value; t.status=s.querySelector('#eSt').value;
+      t.due=s.querySelector('#eDue').value; t.completed=s.querySelector('#eComp').value;
+      if(t.status==='Done'&&!t.completed) t.completed=today();
+      closeSheet(); commit(); };
+    s.querySelector('#eSave').onclick=save;
+    s.querySelector('#eUrlGo').onclick=()=>{ const u=normUrl(s.querySelector('#eUrl').value); if(u) openLink(u); };
+    s.querySelector('#eDel').onclick=()=>{ if(confirm(`Delete “${t.name}”?`)){ items=items.filter(x=>x!==t); closeSheet(); commit(); } };
+  });
+}
+
+function openFilePicker(){
+  if(!tokenValid()){ needAuth(); return; }
+  openSheet(`
+    <h2><span>Choose your CSV</span><button class="iconbtn" data-x aria-label="Close">✕</button></h2>
+    <div class="row"><input class="search" id="fq" placeholder="Search Drive for a .csv" type="search" autocomplete="off"></div>
+    <div class="files" id="fl"><div class="stamp">Loading your CSV files…</div></div>
+    <h3>Or start fresh</h3>
+    <button class="btn ghost" id="fNew" style="width:100%">Create AlmonDOO.csv in My Drive</button>
+    <p class="note">Pick the same file your Mac’s AlmonDOO uses (in your Google Drive folder).</p>`,
+  s=>{
+    s.querySelector('[data-x]').onclick=()=>closeSheet();
+    const fl=s.querySelector('#fl'); let t;
+    const load=async q=>{
+      try{
+        const files=await listCSVs(q);
+        fl.innerHTML = files.length ? files.map(f=>`<button class="fileopt${file&&file.id===f.id?' cur':''}" data-id="${esc(f.id)}" data-name="${esc(f.name)}">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.7"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+          <div><b>${esc(f.name)}</b><small>Modified ${new Date(f.modifiedTime).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</small></div></button>`).join('')
+          : '<div class="stamp">No CSV files found.</div>';
+        fl.querySelectorAll('.fileopt').forEach(b=>b.onclick=()=>useFile({id:b.dataset.id,name:b.dataset.name}));
+      }catch(e){ if(e.name==='AuthError'){ closeSheet(); needAuth(); } else fl.innerHTML=`<div class="stamp">Couldn’t list files: ${esc(e.message)}</div>`; }
+    };
+    s.querySelector('#fq').oninput=e=>{ clearTimeout(t); t=setTimeout(()=>load(e.target.value.trim()),350); };
+    s.querySelector('#fNew').onclick=async()=>{ try{ useFile(await createCSV(),true); }catch(e){ if(e.name==='AuthError') needAuth(); else toast(e.message); } };
+    load('');
+  });
+}
+
+function openSettings(){
+  const email=store.get('email','');
+  const presetHTML=Object.entries(PRESETS).map(([n,p])=>`<button class="preset" data-preset="${n}"><i><b style="background:${p.bg}"></b><b style="background:${p.surface}"></b><b style="background:${p.accent}"></b><b style="background:${p.text}"></b></i>${n}</button>`).join('');
+  const colorHTML=COLOR_FIELDS.map(([k,l])=>`<label class="crow"><span>${l}</span><input type="color" data-color="${k}" value="${settings.colors[k]}"></label>`).join('');
+  const catHTML=()=>settings.cats.map((c,i)=>`<div class="cat"><input type="color" data-cc="${i}" value="${c.color}"><input class="field" data-cn="${i}" value="${esc(c.name)}" ${i===0?'disabled':''}>${i===0?'<span class="lbl" style="width:64px;text-align:center">default</span>':`<button class="btn ghost" style="height:40px;width:64px;padding:0" data-cd="${i}">Remove</button>`}</div>`).join('');
+  openSheet(`
+    <h2><span>Settings</span><button class="iconbtn" data-x aria-label="Close">✕</button></h2>
+    <h3 style="margin-top:0">Google Drive</h3>
+    <div class="stamp" style="margin:0 0 10px">${file?`Synced with <b>${esc(file.name)}</b>${email?` in ${esc(email)}’s Drive`:''}. Changes save to Drive as you go and merge with edits from your Mac.`:'No file chosen.'}</div>
+    <div class="row wrap"><button class="btn ghost" data-f="pick">Choose file…</button><button class="btn ghost" data-f="sync">Sync now</button><button class="btn ghost" data-f="export">Export copy</button><button class="btn ghost" data-f="out">Sign out</button></div>
+    <h3>Theme</h3>
+    <div class="presets">${presetHTML}</div>
+    <h3>Colors</h3>
+    <div class="colors">${colorHTML}</div>
+    <h3>Categories</h3>
+    <div id="catList">${catHTML()}</div>
+    <div class="row"><input class="field" id="newCat" placeholder="New category name"><button class="btn ghost" id="addCat">Add</button></div>
+    <p class="note">Voice: tap the mic and say “Add” followed by the to do — e.g. “Add pick up dry cleaning”. It goes into New.</p>
+    <div class="actions"><button class="btn ghost" id="resetAll">Reset colors</button><span class="sp"></span><button class="btn" data-x>Done</button></div>`,
+  s=>{
+    s.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>closeSheet());
+    s.querySelector('[data-f=pick]').onclick=()=>openFilePicker();
+    s.querySelector('[data-f=sync]').onclick=()=>{ closeSheet(); sync(); };
+    s.querySelector('[data-f=export]').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([toCSV()],{type:'text/csv'}));
+      a.download='AlmonDOO.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
+    s.querySelector('[data-f=out]').onclick=async()=>{
+      if(dirty && !confirm('Some changes haven’t reached Drive yet. Sign out anyway?')) return;
+      if(token) fetch('https://oauth2.googleapis.com/revoke?token='+encodeURIComponent(token.v),{method:'POST'}).catch(()=>{});
+      token=null; store.set('token',null); store.set('signedIn',false); closeSheet(); setFileChip(); showWelcome('signin'); };
+    const syncColors=()=>s.querySelectorAll('[data-color]').forEach(i=>i.value=settings.colors[i.dataset.color]);
+    s.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{ settings.colors={...PRESETS[b.dataset.preset]}; saveSettings(); syncColors(); render(); });
+    s.querySelectorAll('[data-color]').forEach(i=>i.oninput=()=>{ settings.colors[i.dataset.color]=i.value; saveSettings(); });
+    s.querySelector('#resetAll').onclick=()=>{ settings.colors={...PRESETS.Almond}; saveSettings(); syncColors(); render(); };
+    const cl=s.querySelector('#catList');
+    const bindCats=()=>{
+      cl.querySelectorAll('[data-cc]').forEach(i=>i.oninput=()=>{ settings.cats[+i.dataset.cc].color=i.value; saveSettings(); render(); });
+      cl.querySelectorAll('[data-cn]').forEach(i=>i.onchange=()=>{ const c=settings.cats[+i.dataset.cn], nv=i.value.trim();
+        if(!nv||settings.cats.some(x=>x!==c&&x.name===nv)){ i.value=c.name; return toast('Category names must be unique'); }
+        items.forEach(t=>{ if(t.category===c.name) t.category=nv; }); view.cats=view.cats.map(x=>x===c.name?nv:x);
+        c.name=nv; saveSettings(); commit(); });
+      cl.querySelectorAll('[data-cd]').forEach(b=>b.onclick=()=>{ const c=settings.cats[+b.dataset.cd];
+        const n=items.filter(t=>t.category===c.name).length;
+        if(n&&!confirm(`Remove “${c.name}”? Its ${n} item${n>1?'s':''} will move to New.`)) return;
+        items.forEach(t=>{ if(t.category===c.name) t.category='New'; }); view.cats=view.cats.filter(x=>x!==c.name);
+        settings.cats.splice(+b.dataset.cd,1); saveSettings(); cl.innerHTML=catHTML(); bindCats(); commit(); });
+    }; bindCats();
+    s.querySelector('#addCat').onclick=()=>{ const i=s.querySelector('#newCat'), v=i.value.trim(); if(!v) return;
+      if(settings.cats.some(c=>c.name.toLowerCase()===v.toLowerCase())) return toast('That category already exists');
+      const hues=['#3E7CB1','#5E9A55','#C8664A','#8A5BB5','#C49A2E','#2E9A9A','#B5527E'];
+      settings.cats.push({name:v,color:hues[settings.cats.length%hues.length]}); i.value=''; saveSettings(); cl.innerHTML=catHTML(); bindCats(); render(); };
+  });
+}
+$('#settingsBtn').onclick=()=>openSettings();
+
+/* ---------- boot ---------- */
+let toastT; function toast(m){ document.querySelector('.toast')?.remove(); const d=document.createElement('div'); d.className='toast'; d.textContent=m; document.body.appendChild(d); clearTimeout(toastT); toastT=setTimeout(()=>d.remove(),3200); }
+function boot(){
+  applyTheme(); syncCats(); render(); setFileChip();
+  if(dirty) setSave('Not saved yet');
+  const ret=readRedirect();
+  if(ret==='ok'){ store.set('silentAt',0); fetchEmail(); }
+  if(!clientId){ showWelcome('setup'); return; }
+  if(!tokenValid()){
+    const silentFailed = ret && ret.startsWith('error:');
+    if(store.get('signedIn',false) && navigator.onLine && !silentFailed && Date.now()-store.get('silentAt',0)>90000){ signIn(true); return; }
+    if(file && items.length){ needAuth(); return; }          // show your cached list, with a Sign in banner
+    showWelcome('signin', ret==='error:access_denied' ? 'Google sign-in was cancelled.' : ''); return;
+  }
+  if(!file){ showWelcome('pick'); return; }
+  sync();
+}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+window.__almondoo={get items(){return items}, set items(v){items=v}, fromCSV, toCSV, merge3, parseSpoken, sync, addItem};
+boot();
+})();
+</script>
+</body>
+</html>
