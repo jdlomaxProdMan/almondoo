@@ -170,6 +170,24 @@ input[type=color]::-webkit-color-swatch{border:1px solid var(--line);border-radi
 .banner{margin:0 14px 8px;padding:9px 10px;border-radius:10px;background:color-mix(in srgb,#D49A2A 18%,var(--surface));border:1px solid color-mix(in srgb,#D49A2A 45%,var(--line));display:flex;gap:10px;align-items:center;font-size:13.5px}
 .banner span{flex:1}
 .banner .btn{height:34px;padding:0 12px;font-size:13.5px}
+
+/* Tablets & landscape: keep the list a comfortable reading width, centred */
+@media (min-width:760px){
+  header,.toolbar,.quick,.chips,footer{width:100%;max-width:760px;margin-left:auto;margin-right:auto}
+  .add,.banner{width:calc(100% - 28px);max-width:732px;margin-left:auto;margin-right:auto}
+  main{width:100%;max-width:760px;margin:0 auto}
+  .sheet{max-width:620px}
+}
+/* Short landscape screens: tighten vertical spacing so more of the list shows */
+@media (orientation:landscape) and (max-height:620px){
+  header{padding-top:calc(4px + var(--sat));padding-bottom:4px}
+  .quick button{height:34px}
+  .chip{height:30px}
+  .add input,.btn,.mic{height:40px}.mic{width:40px}
+  .add{margin-bottom:6px}
+  footer{padding-top:5px;padding-bottom:calc(5px + var(--sab))}
+  .scrim{align-items:center}.sheet{border-radius:18px;max-height:calc(100% - 20px)}
+}
 </style>
 </head>
 <body>
