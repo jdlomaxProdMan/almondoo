@@ -1,0 +1,1 @@
+a simple Google Drive solution for a 'to do' app that synchronizes between Android and MacOS.  I've installed successfully on Google Pixel phone, MacOS & a Lenovo tablet running Android.  A Chrome app that behaves very app-like on Android, and within an app-like browser window on MacOS.  I use it every day.
